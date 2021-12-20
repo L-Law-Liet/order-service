@@ -41,6 +41,7 @@ public class OrderService {
         List<Product> products = getProductsByIds(body.getProduct_ids());
         String email = getEmailById(order.getUser_id());
         sendEmail(products, email, order.getTotal());
+        deleteItems(order.getUser_id());
         return order;
     }
 
@@ -78,13 +79,6 @@ public class OrderService {
     }
 
     public List<Product> getProductsByIds(List<Long> ids) {
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        String list = null;
-//        try {
-//            list = objectMapper.writeValueAsString(ids);
-//        } catch (JsonProcessingException e) {
-//            e.printStackTrace();
-//        }
         List<Product> products = restTemplate.exchange("http://store-information-service/products/ids",
                 HttpMethod.POST, httpExchange.getEntity(ids.toString()),
                 new ParameterizedTypeReference<List<Product>>() {}).getBody();
@@ -95,5 +89,10 @@ public class OrderService {
     public String getEmailById(Long id) {
         return restTemplate.exchange("http://store-profile-service/profile/email/" + id,
                 HttpMethod.GET, httpExchange.getEntity(), String.class).getBody();
+    }
+
+    public void deleteItems(Long id) {
+        restTemplate.exchange("http://store-cart-service/cart/user/" + id,
+                HttpMethod.DELETE, httpExchange.getEntity(), Void.class).getBody();
     }
 }
